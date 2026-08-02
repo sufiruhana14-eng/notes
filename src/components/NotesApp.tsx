@@ -10,12 +10,14 @@ import type { Folder, Note } from "@/types/note";
 import { FileText } from "lucide-react";
 
 type Props = {
+  userId: string;
   userEmail: string;
   initialFolders: Folder[];
   initialNotes: Note[];
 };
 
 export default function NotesApp({
+  userId,
   userEmail,
   initialFolders,
   initialNotes,
@@ -81,6 +83,7 @@ export default function NotesApp({
     const { data, error } = await supabase
       .from("notes")
       .insert({
+        user_id: userId,
         title: "",
         content: {},
         content_text: "",
@@ -89,7 +92,10 @@ export default function NotesApp({
       .select()
       .single();
 
-    if (error || !data) return;
+    if (error || !data) {
+      console.error("Gagal bikin note baru:", error);
+      return;
+    }
 
     setNotes((prev) => [data as Note, ...prev]);
     setSelectedNoteId(data.id);
@@ -119,10 +125,13 @@ export default function NotesApp({
   async function handleNewFolder(name: string) {
     const { data, error } = await supabase
       .from("folders")
-      .insert({ name })
+      .insert({ user_id: userId, name })
       .select()
       .single();
-    if (error || !data) return;
+    if (error || !data) {
+      console.error("Gagal bikin folder baru:", error);
+      return;
+    }
     setFolders((prev) => [...prev, data as Folder]);
   }
 
